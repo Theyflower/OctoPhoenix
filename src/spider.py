@@ -29,6 +29,7 @@ send dead links to phoenix
 """
 import requests
 import phoenix
+from time import strftime
 
 def twitching(page):
 	'''
@@ -36,13 +37,26 @@ def twitching(page):
 	(Checks if a link is dead, dead links don't twitch)
 	'''
 	status = page.status_code
-	if status != 200: #yah this could beone line of code, but chances are I'll need to handle more than just 200s
+	if status == 200: #yah this could beone line of code, but chances are I'll need to handle more than just 200s
+		print("DEBUBG Found +++live+++ link at {}".format(page.url))
 		return True
 	else:
+		print("DEBUBG Found ---dead--- link at {}".format(page.url))
 		return False
 
+def digest(insect, stomach):
+	'''
+	digests the insect caught in the web
+	(logs it as the dead links are found)
+	'''
+	print(";LNASD;LKANSD "+str(type(insect)))
+	poo = insect.to_string()
+	stomach.write(poo)
+	print(poo)
+	
 
-def crawl(domain, url, br, indexed=None, deadlinks=[]):
+def crawl(stomach, domain, url, br, indexed=None, deadlinks=[]):
+	print("DEBUG_ CRAWLING		" + url)
 	'''
 	@preconditions
 		@params:
@@ -59,27 +73,44 @@ def crawl(domain, url, br, indexed=None, deadlinks=[]):
 	
 	note to self: returns [indexed, deadlinks]
 	'''
+	BAD = ["javascript"]
+
 	if indexed == None:
 		indexed = [url]
 	page = br.get(url)#todo(aaron) if this fails log it as a deadlink and then return
-	if twitching(page):
+	if  not twitching(page):
+		quantum_corpse = phoenix.Ashes(page, strftime('%l:%M%p %z on %b %d, %Y'))
+		digest(quantum_corpse, stomach)
+		deadlinks.append(quantum_corpse)
+		return [indexed, deadlinks]
 
-	links = page.find_all('a')#d@todo(aaron) get all the <a elements
+	links = page.soup.find_all('a')#d@todo(aaron) get all the <a elements
 	crawlme = []
 	for link in links:
 		if link.has_attr('href'):
 			url = link.get('href')
-		else
+		else:
 			#todo(aaron) make it LOGTHIS
 			continue
 		if url.startswith(domain): #todo(aaron) make it detect internal urls that dont have the domain name "/dir/page.ext"
 			if url not in indexed:
 				indexed.append(url)
-				new = crawl(domain, url, br, indexed, deadlinks)
+				new = crawl(stomach, domain, url, br, indexed, deadlinks)
+				indexed = new[0]
+				deadlinks = new[1] #@todo(you) make this good cool stuff with 
+		elif url.startswith("/"):
+			url = "{}{}".format(domain,url)
+			if url not in indexed:
+				indexed.append(url)
+				new = crawl(stomach, domain, url, br, indexed, deadlinks)
 				indexed = new[0]
 				deadlinks = new[1] #@todo(you) make this good cool stuff with 
 		else:
-			page = requests.get(url)
-			if twitching(page):
-				deadlinks.append[phoenix.Ashes(page)]
+			for badthing in BAD:
+				if not url.startswith(badthing):
+					if not twitching(page):
+						quantum_corpse = phoenix.Ashes(page, strftime('%l:%M%p %z on %b %d, %Y'))
+						digest(quantum_corpse)
+						deadlinks.append[quantum_corpse]
+
 	return [indexed, deadlinks]

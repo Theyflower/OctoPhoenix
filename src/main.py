@@ -16,7 +16,9 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import mechanicalsoup
-
+import config
+import spider
+from time import strftime
 
 """
 the main thing
@@ -26,5 +28,14 @@ crawl it
 log the dead links
 """
 def main():
-	br = mechancialsoup.Browser()
-	#@todo(aaron) make this
+	br = mechanicalsoup.Browser()
+	domain = config.DOMAIN
+	f = open("{}{}".format(strftime('%l:%M%p %z on %b %d, %Y')," OctoPhoenixLog.txt"),"w")
+	web = spider.crawl(f, domain, domain, br)
+	checkedpages = web[0]
+	deadlinks = web[1]
+	for ash in deadlinks:
+		phoenix.reincarnate(ash)
+
+if __name__ == "__main__":
+	main()

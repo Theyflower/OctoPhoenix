@@ -22,18 +22,30 @@ Put the code here that gets the archive.org snapshots of pages
 how am I gonna do this?
 """
 class Ashes:
-	def __init__(self, body):
+	def __init__(self, body, time):
 		'''
 		body is the corpse of a dead link
+		(the request)
 		'''
-		self.url = None
-		self.response = None
-		self.time = None
+		self.url = body.url
+		self.response = body.status_code
+		self.time = time
+		self.life = reincarnate(self.url)
 
-def reincarnate(deadlink):#@todo(aaron make this)
+	def to_string(self):
+		return """
+		Dead link found at {}
+				URL = {}
+				REPONSE = {}
+				GOODLINK = {}
+		""".format(self.time, self.url, self.response, self.life)
+
+def reincarnate(ashes):#@todo(aaron make this)
 	'''
 	Take the cremated remains of a dead link and makes it rise from the ashes.
 
 	Gets an archive.org
 	'''
-	pass
+	base_url = "https://web.archive.org/web/0/"
+	url = "{}{}".format(base_url, ashes)
+	return url
